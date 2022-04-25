@@ -6,8 +6,8 @@
 
     ```sh
     mkdir -p /tmp/GPU-HO-Datasets
-    wget -O /tmp/GPU-HO-Datasets/reviews_test_100.csv https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/reviews_test_100.csv
-    wget -O /tmp/GPU-HO-Datasets/reviews_train_5000.csv https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/reviews_train_5000.csv
+    wget -O /tmp/GPU-HO-Datasets/reviews_test_100.csv https://raw.githubusercontent.com/raphaelpoumarede/testing-cas-gpu-processing/main/data/reviews_test_100.csv
+    wget -O /tmp/GPU-HO-Datasets/reviews_train_5000.csv https://raw.githubusercontent.com/raphaelpoumarede/testing-cas-gpu-processing/main/data/reviews_train_5000.csv
     # Download the pre-trained word vectors dictionnary
     wget -O /tmp/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
     unzip /tmp/glove.6B.zip -d /tmp
