@@ -6,9 +6,9 @@
 
     ```sh
     mkdir -p /tmp/workshop_files/GPU-HO-Datasets
-    wget -o /tmp/reviews_test_100.csv https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/tmp/reviews_test_100.csv
-    wget -o /tmp/reviews_train_5000.csv https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/tmp/reviews_train_5000.csv
-    wget -o /tmp/glove_100d_tab_clean.txt https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/tmp/glove_100d_tab_clean.txt
+    wget -O /tmp/GPU-HO-Datasets/reviews_test_100.csv https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/reviews_test_100.csv
+    wget -O /tmp/GPU-HO-Datasets/reviews_train_5000.csv https://github.com/raphaelpoumarede/testing-cas-gpu-processing/data/reviews_train_5000.csv
+    wget -O /tmp/GPU-HO-Datasets/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
     ```
 
 * then use the kubectl command to transfer the data in the Public CASlib through the CAS pod
