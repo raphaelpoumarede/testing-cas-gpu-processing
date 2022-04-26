@@ -1,16 +1,16 @@
 # testing-cas-gpu-processing
 
-* copy the data in CAS pod with kubectl commands
+* Copy the data in CAS pod with kubectl commands
 
-* first get them from the GitHub project or the stanford.edu page
+* First get them from the GitHub project or the stanford.edu page
 
     ```sh
     mkdir -p /tmp/GPU-HO-Datasets
     wget -O /tmp/GPU-HO-Datasets/reviews_test_100.csv https://raw.githubusercontent.com/raphaelpoumarede/testing-cas-gpu-processing/main/data/reviews_test_100.csv
     wget -O /tmp/GPU-HO-Datasets/reviews_train_5000.csv https://raw.githubusercontent.com/raphaelpoumarede/testing-cas-gpu-processing/main/data/reviews_train_5000.csv
     # Download the pre-trained word vectors dictionnary
-    wget -O /tmp/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
-    unzip /tmp/glove.6B.zip -d /tmp
+    # wget -O /tmp/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
+    # unzip /tmp/glove.6B.zip -d /tmp
     ```
 
 * then use the kubectl command to transfer the data in the Public CASlib through the CAS pod
@@ -18,7 +18,7 @@
     ```sh
     kubectl -n casgpu -c cas cp /tmp/GPU-HO-Datasets/reviews_test_100.csv sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/reviews_test_100.csv
     kubectl -n casgpu -c cas cp /tmp/GPU-HO-Datasets/reviews_train_5000.csv sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/reviews_train_5000.csv
-    kubectl -n casgpu -c cas cp /tmpglove.6B.100d.txt sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/glove_100d_tab_clean.txt
+    kubectl -n casgpu -c cas cp /tmp/glove.6B.100d.txt sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/glove_100d_tab_clean.txt
     ```
 
 * Open SAS Studio
