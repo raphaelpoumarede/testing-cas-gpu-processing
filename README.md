@@ -43,7 +43,7 @@ Reference: [Add a CAS "GPU-enabled" Node pool to boost your SAS Viya Analytics P
 
 ```sas
 /*Open a session on the CAS GPU server*/
-cas MySession sessopts=(caslib=casuser timeout=1800 locale="en_US") host="sas-cas-server-shared-casgpu-client";
+cas MySession sessopts=(caslib=casuser timeout=1800 locale="en_US" metrics=true) host="sas-cas-server-shared-casgpu-client";
 libname CASUSER cas caslib="CASUSER";
 
 /************************/
@@ -59,11 +59,19 @@ loadtable path='reviews_test_100.csv' caslib="PUBLIC"
 casOut={name='reviews_test' replace=true}
 importoptions={fileType='csv' varChars=True getNames=True};
 
+run;
+quit;
+
+proc cas;
+   session MySession;
 loadtable path='glove_100d_tab_clean.txt' caslib="PUBLIC"
-importOptions={fileType='delimited' delimiter='\t' guessRows=2 varChars=True}
+importOptions={fileType='delimited' delimiter=' ' varChars=True}
 casOut={name='glove' replace=true};
 run;
 quit;
+
+
+
 
 /**********************/
 /* CHECK OUT THE DATA */
@@ -94,10 +102,15 @@ table.tableInfo /
       table={name="reviews_test"};
    run;
 
-/*   table.fetch /
+   table.fetch /
       maxRows=20
       table={name="glove"};
-   run;*/
+   run;
+
+table.columnInfo /
+     table={name="glove"};
+   run;
+
 quit;
 
 /***********************/
