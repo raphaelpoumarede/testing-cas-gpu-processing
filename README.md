@@ -1,4 +1,4 @@
-# testing-cas-gpu-processing
+# Testing the CAS GPU processing with a simple SAS program
 
 * Copy the data in CAS pod with kubectl commands
 
