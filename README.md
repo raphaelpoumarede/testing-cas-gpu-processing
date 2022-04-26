@@ -11,18 +11,30 @@ Reference: [Add a CAS "GPU-enabled" Node pool to boost your SAS Viya Analytics P
     wget -O /tmp/GPU-HO-Datasets/reviews_test_100.csv https://raw.githubusercontent.com/raphaelpoumarede/testing-cas-gpu-processing/main/data/reviews_test_100.csv
     wget -O /tmp/GPU-HO-Datasets/reviews_train_5000.csv https://raw.githubusercontent.com/raphaelpoumarede/testing-cas-gpu-processing/main/data/reviews_train_5000.csv
     # Download the pre-trained word vectors dictionnary
-    # wget -O /tmp/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
-    # Instead we download the clean dataset
-    wget -O /tmp/glove_100d_tab_clean.txt.gz https://github.com/raphaelpoumarede/testing-cas-gpu-processing/releases/download/v1.0/glove_100d_tab_clean.txt.gz
-    gunzip -c /tmp/glove_100d_tab_clean.txt.gz > /tmp/glove_100d_tab_clean.txt
+    wget -O /tmp/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
     ```
+
+* Prepate the GLOVE dataset
+
+    ```sh
+    unzip /tmp/glove.6B.zip -d /tmp
+    # insert a header line
+    sed -i '1 i \term _1_ _2_ _3_ _4_ _5_ _6_ _7_ _8_ _9_ _10_ _11_ _12_ _13_ _14_ _15_ _16_ _17_ _18_ _19_ _20_ _21_ _22_ _23_ _24_ _25_ _26_ _27_ _28_ _29_ _30_ _31_     _32_ _33_ _34_ _35_ _36_ _37_ _38_ _39_ _40_ _41_ _42_ _43_ _44_ _45_ _46_ _47_ _48_ _49_ _50_ _51_ _52_ _53_ _54_ _55_ _56_ _57_ _58_ _59_ _60_ _61_ _62_ _63_         _64_ _65_ _66_ _67_ _68_ _69_ _70_ _71_ _72_ _73_ _74_ _75_ _76_ _77_ _78_ _79_ _80_ _81_ _82_ _83_ _84_ _85_ _86_ _87_ _88_ _89_ _90_ _91_ _92_ _93_ _94_ _95_         _96_ _97_ _98_ _99_ _100_' /tmp/glove.6B.100d.txt
+    # remove the 10th row that starts with "", so CAS can load the file.
+    sed -i '10d' /tmp/glove.6B.100d.txt
+    
+    # As an alternative you can download the clean dataset from this GitHub project
+    # wget -O /tmp/glove_100d_tab_clean.txt.gz https://github.com/raphaelpoumarede/testing-cas-gpu-processing/releases/download/v1.0/glove_100d_tab_clean.txt.gz
+    # gunzip -c /tmp/glove_100d_tab_clean.txt.gz > /tmp/glove_100d_tab_clean.txt
+    ```
+
 
 * Then use the kubectl command to transfer the data in the Public CASlib through the CAS pod
 
     ```sh
     kubectl -n casgpu -c cas cp /tmp/GPU-HO-Datasets/reviews_test_100.csv sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/reviews_test_100.csv
     kubectl -n casgpu -c cas cp /tmp/GPU-HO-Datasets/reviews_train_5000.csv sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/reviews_train_5000.csv
-    kubectl -n casgpu -c cas cp /tmp/glove_100d_tab_clean.txt sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/glove_100d_tab_clean.txt
+    kubectl -n casgpu -c cas cp /tmp/glove.6B.100d.txt sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/glove_100d_tab_clean.txt
     ```
 
 * Open SAS Studio
@@ -197,4 +209,17 @@ proc cas;
 quit;
 
 cas MySession terminate;
+```
+
+* If everything went well, you should see this kind of message in the SAS Log that confirms that the GPU processor is used by CAS:
+
+```sh
+Active Session now MySession.
+NOTE: Executing action 'deepLearn.dlTrain'.
+NOTE: Using controller.sas-cas-server-shared-casgpu.casgpu.svc.cluster.local: 1 out of 1 available GPU devices.
+NOTE: Action 'deepLearn.dlTrain' used (Total process time):
+NOTE:       real time               97.285795 seconds
+NOTE:       cpu time                108.372646 seconds (111.40%)
+NOTE:       total nodes             1 (8 cores)
+NOTE:       total memory            51.00G
 ```
