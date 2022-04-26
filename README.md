@@ -1,5 +1,7 @@
 # Testing the CAS GPU processing with a simple SAS program
 
+Reference: [Add a CAS "GPU-enabled" Node pool to boost your SAS Viya Analytics Platform !](https://communities.sas.com/t5/SAS-Communities-Library/Add-a-CAS-GPU-enabled-Node-pool-to-boost-your-SAS-Viya-Analytics/ta-p/809688)
+
 * Copy the data in CAS pod with kubectl commands
 
 * First get them from the GitHub project or the stanford.edu page
