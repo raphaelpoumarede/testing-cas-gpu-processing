@@ -1,10 +1,119 @@
-# Testing the CAS GPU processing with a simple SAS program
+# Testing the CAS GPU processing in Viya 4 with a simple SAS program
 
 Reference: [Add a CAS "GPU-enabled" Node pool to boost your SAS Viya Analytics Platform !](https://communities.sas.com/t5/SAS-Communities-Library/Add-a-CAS-GPU-enabled-Node-pool-to-boost-your-SAS-Viya-Analytics/ta-p/809688)
 
+The referenced blog, above, explains how to add and configure an extra CAS server with GPU processing in your Viya environment. 
+
+Here are two ways to test and validate (from SAS Studio) that CAS can use the GPU processor (GAN and RNN with Word vector model). 
+
+## Validate the GPU with a dummy program
+
+* Open SAS Studio
+
+* Login and run the following program.
+
+```sas
+options cashost='sas-cas-server-shared-design-gpu-client';
+cas cas_gpu;
+
+caslib _ALL_ assign;
+
+data casuser.hmeq;
+	set sampsio.hmeq;
+run;
+
+/* Define the runloop macro */
+ %macro runloop;
+     /* Specify all interval input variables*/
+     %let names=value clage;
+     /* Loop over all variables that need centroids generation */
+     %do i=1 %to %sysfunc(countw(&names));
+         %let name&i = %scan(&names, &i, %str( ));
+         /* Call the GMM action to cluster each variable */
+         proc cas ;
+             action nonParametricBayes.gmm result=R/
+                 table       = {name="hmeq"},
+                 inputs      = {"&&name&i"},/*'value'*/
+                 seed        = 1234567890,
+                 maxClusters = 10,
+                 alpha       = 1,
+                 infer       = {method="VB",
+                                maxVbIter =30,
+                                covariance="diagonal",
+                                threshold=0.01},
+                 output      = {casOut={name='Score', replace=true},
+                                copyVars={'value'}},
+                 display     = {names={ "ClusterInfo"}}
+                ;
+             run;
+             saveresult R.ClusterInfo replace dataset=work.weights&i;
+         run;
+         quit;
+
+         /* Save variable name, weights, mean,     */
+         /* and standard deviation of each cluster */
+         data  weights&i;
+             varname = "&&name&i";
+             set  weights&i(rename=(&&name&i.._Mean=Mean
+                                    &&name&i.._Variance=Var));
+             /* Calculate standard deviation from variance*/
+             std = sqrt(Var);
+             drop Var;
+         run;
+
+         /* Construct centroids table from saved weights */
+         %if &i=1 %then %do;
+             data centroids;
+             set weights&i;
+             run;
+         %end;
+         %else %do;
+             data centroids;
+             set centroids weights&i;
+             run;
+         %end;
+     %end;
+ %mend;
+
+ /* Run the runloop macro to generate the centroids table */
+ %runloop;
+
+data casuser.centroids;
+   set centroids;
+run;
+
+
+proc cas;
+     loadactionset "generativeAdversarialNet";
+     action tabularGanTrain result = r /
+         table           = {name = "hmeq",
+                            vars = {'bad','value','clage','job'}},
+         centroidsTable  = "centroids",
+         nominals        = {"bad","job"},
+         gpu             = {useGPU = True, device = 0},
+         optimizerAe     = {method = "ADAM", numEpochs = 3},
+         optimizerGan    = {method = "ADAM", numEpochs = 5},
+         seed            = 12345,
+         scoreSeed       = 0,
+         numSamples      = 5,
+         saveState       = {name = 'cpctStore', replace = True},
+         casOut          = {name = 'out', replace = True};
+     print r;
+ run;
+ quit;
+```
+
+
+
+## Apply a Word Vector Model to Score Documents and Train a Recurrent Neural Network (RNN) Model
+
+* References:
+  * [Apply a Word Vector Model to Score Documents and Train a Recurrent Neural Network (RNN) Model Using the tpWordVector Action] https://documentation.sas.com/doc/en/pgmsascdc/v_025/casvtapg/n047bll9q5h0nln1uulc1qpo0b2y.htm
+  * [GloVe: Global Vectors for Word Representation](https://nlp.stanford.edu/projects/glove/)
+
 * Copy the data in CAS pod with kubectl commands
 
-* First get them from the GitHub project or the stanford.edu page
+  * First get them from the GitHub project or the stanford.edu page
 
     ```sh
     mkdir -p /tmp/GPU-HO-Datasets
@@ -14,7 +123,7 @@ Reference: [Add a CAS "GPU-enabled" Node pool to boost your SAS Viya Analytics P
     wget -O /tmp/glove.6B.zip https://nlp.stanford.edu/data/glove.6B.zip
     ```
 
-* Prepate the GLOVE dataset
+  * Prepate the GLOVE dataset
 
     ```sh
     unzip /tmp/glove.6B.zip -d /tmp
@@ -29,7 +138,7 @@ Reference: [Add a CAS "GPU-enabled" Node pool to boost your SAS Viya Analytics P
     ```
 
 
-* Then use the kubectl command to transfer the data in the Public CASlib through the CAS pod
+  * Then use the kubectl command to transfer the data in the Public CASlib through the CAS pod
 
     ```sh
     kubectl -n casgpu -c cas cp /tmp/GPU-HO-Datasets/reviews_test_100.csv sas-cas-server-shared-casgpu-controller:/cas/data/caslibs/public/reviews_test_100.csv
